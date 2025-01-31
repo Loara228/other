@@ -7,6 +7,9 @@ pub struct Args {
     pub from: Option<String>,
 
     #[arg(short, long)]
+    pub password: Option<String>,
+
+    #[arg(short, long)]
     pub to: Option<String>,
 
     #[arg(short, long)]
