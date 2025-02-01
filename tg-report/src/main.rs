@@ -1,6 +1,8 @@
+mod constants;
+
 use std::path::PathBuf;
 
-use teloxide::{prelude::*, types::{InputFile, InputMediaPhoto}};
+use teloxide::{prelude::*, types::InputFile};
 use clap::*;
 
 #[derive(Parser)]
@@ -8,21 +10,36 @@ use clap::*;
 pub struct Cli {
     #[command(subcommand)]
     pub command: Option<Commands>,
+
+    #[arg(long, short)]
+    text: Option<String>
 }
 
 #[derive(Subcommand)]
 pub enum Commands {
     Open {
-        path: Option<PathBuf>
+        path: PathBuf,
     },
     Purchase {
-        path: Option<PathBuf>,
+        path: PathBuf,
+    },
+    Close {
+        path: PathBuf,
 
-        #[arg(short, long)]
-        lead: bool,
-        
-        #[arg(short, long)]
-        text: String
+        #[arg(long, default_value = "0")]
+        credit_requests: u32,
+
+        #[arg(long, default_value = "0")]
+        credit_responses: u32,
+
+        #[arg(long, default_value = "0")]
+        registrations: u32,
+
+        #[arg(long, default_value = "0")]
+        cash: u32,
+
+        #[arg(long, default_value = "0")]
+        adapter: u32
     }
 }
 
@@ -38,19 +55,19 @@ async fn run() {
         let bot = Bot::new(include_str!("../target/token"));
         match cli.command.unwrap() {
             Commands::Open { path } => {
-                bot.send_photo(ChatId(1936488718i64),photo(path)).caption("Открытие").await.unwrap();
+                bot.send_photo(ChatId(1936488718i64), photo(path)).caption(cli.text.unwrap_or_default()).await.unwrap();
             },
-            Commands::Purchase { path, lead, text } => {
-                let mut lead_str = "Нет";
-                if lead {
-                    lead_str = "Да";
-                }
-                bot.send_photo(
-                        ChatId(1936488718i64), 
-                        photo(path))
-                    .caption(format!("*Лид*: _{lead_str}_\n{}", text))
-                    .parse_mode(teloxide::types::ParseMode::MarkdownV2).await.unwrap();
-            },
+            Commands::Close { path, credit_requests, credit_responses, registrations, cash, adapter } => {
+                let msg = bot.send_photo(ChatId(1936488718i64), photo(path));
+                msg.caption(format!(
+r#"Отчет по закрытию 
+МЦ г. Радужный 7 мкр.
+1. Заявки кд количество поданных/количество выданных - {}/{}
+2. Отзывы Яндекс/ГИС - 0
+3. Регистрация клиентов в 1С - {}
+4. Адаптер шт - {}
+5. Остаток дс в кассе - {}"#, credit_requests, credit_responses, registrations, adapter, cash)).await.unwrap();
+            }
             _ => todo!("not implemented")
         }
     } else {
@@ -58,8 +75,7 @@ async fn run() {
     }
 }
 
-fn photo(path: Option<PathBuf>) -> InputFile {
-    let path = path.expect("input file is none");
+fn photo(path: PathBuf) -> InputFile {
     if !path.exists() {
         panic!("file not found")
     }

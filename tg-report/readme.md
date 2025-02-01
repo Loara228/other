@@ -1,29 +1,51 @@
 
+example open
+
 ```bash
-$ cargo run -- purchase /home/tyoma/Pictures/Screenshots/image2.png -l -t 'Scam'
+$ cargo run -- -t 'hello!' open '/home/tyoma/Pictures/image1.png'
 ```
 
-<b>Usage: tg-report [COMMAND]</b>
+```bash
+$ cargo run -- close --credit-requests 3 --credit-responses 1 --registrations 7 --cash 35228 /home/tyoma/Pictures/image1.png
+```
+
+```bash
+Usage: tg-report [OPTIONS] [COMMAND]
+```
 
 ```bash
 Commands:
-  open      
-  purchase  
-  help
+  open      Отправить открытие смены
+  close     Отправить закрытие смены
+  help      Print this message or the help of the given subcommand(s)
 
 Options:
-  -h, --help     Print help
-  -V, --version  Print version
-```
+  -t, --text <TEXT>  
+  -h, --help         Print help
+  -V, --version      Print version
+  ```
 
-<b>Usage: tg-report purchase [OPTIONS] --text <TEXT> [PATH]</b>
+Usage: tg-report open <PATH>
 
 ```bash
 Arguments:
-  [PATH]  
+  <PATH> 
+  
+  Options:
+  -h, --help  Print help
+```
 
-Options:
-  -l, --lead         
-  -t, --text <TEXT>  
-  -h, --help         Print help
+Usage: tg-report close [OPTIONS] <PATH>
+
+```bash
+Arguments:
+  <PATH>
+
+  Options:
+      --credit-requests <CREDIT_REQUESTS>    [default: 0]
+      --credit-responses <CREDIT_RESPONSES>  [default: 0]
+      --registrations <REGISTRATIONS>        [default: 0]
+      --cash <CASH>                          [default: 0]
+      --adapter <ADAPTER>                    [default: 0]
+  -h, --help                                 Print help
 ```
