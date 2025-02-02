@@ -55,10 +55,10 @@ async fn run() {
         let bot = Bot::new(include_str!("../target/token"));
         match cli.command.unwrap() {
             Commands::Open { path } => {
-                bot.send_photo(ChatId(1936488718i64), photo(path)).caption(cli.text.unwrap_or_default()).await.unwrap();
+                bot.send_photo(ChatId(constants::DIALOG_ID), photo(path)).caption(cli.text.unwrap_or_default()).await.unwrap();
             },
             Commands::Close { path, credit_requests, credit_responses, registrations, cash, adapter } => {
-                let msg = bot.send_photo(ChatId(1936488718i64), photo(path));
+                let msg = bot.send_photo(ChatId(constants::DIALOG_ID), photo(path));
                 msg.caption(format!(
 r#"Отчет по закрытию 
 МЦ г. Радужный 7 мкр.
