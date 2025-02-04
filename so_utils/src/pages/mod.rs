@@ -1,7 +1,4 @@
-use std::io::Write;
-
 use iced::{alignment::Horizontal, widget::{button, horizontal_space, text, text_input}, Alignment::Center, Length};
-
 use crate::{models::ModalModel, AppEvent};
 
 pub trait Page {

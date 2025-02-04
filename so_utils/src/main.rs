@@ -15,7 +15,8 @@ pub fn main() -> iced::Result {
         .capture_image().unwrap();
 
     DynamicImage::from(screenshot)
-        .crop(240, 160, 1580, 820)
+        .crop(240, 160, 1600, 850)
+        .grayscale()
         .save_with_format(get_screenshot_path(), ImageFormat::Png)
         .unwrap();
 
@@ -90,7 +91,7 @@ impl App {
 
     fn view_menu(&self) -> Container<AppEvent> {
         
-        let mut buttons: Row<_> = Row::new(); // Предполагаем, что Row<_> можно создать таким образом
+        let mut buttons: Row<_> = Row::new();
 
         for page in self.pages.iter() {
             if !page.1.hidden() {
@@ -98,7 +99,7 @@ impl App {
                     .on_press(AppEvent::SwitchPage(page.0.to_owned()))
                     .style(button::text)
                     .width(Length::Shrink);        
-                buttons = buttons.push(button); // Добавляем кнопку в Row
+                buttons = buttons.push(button);
             }
         }
         container(buttons).width(Fill).align_x(Center).style(container::bordered_box)
