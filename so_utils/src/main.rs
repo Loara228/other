@@ -7,12 +7,17 @@ use std::{collections::HashMap, env, path::PathBuf};
 
 use iced::{widget::*, Alignment::Center, Element, Length::{self, Fill}, Size, Theme};
 use pages::Page;
+use xcap::image::{DynamicImage, ImageFormat};
 
 pub fn main() -> iced::Result {
-    xcap::Monitor::all().unwrap()
+    let screenshot = xcap::Monitor::all().unwrap()
         .get(0).unwrap()
-        .capture_image().unwrap()
-        .save(get_screenshot_path()).unwrap();
+        .capture_image().unwrap();
+
+    DynamicImage::from(screenshot)
+        .crop(240, 160, 1580, 820)
+        .save_with_format(get_screenshot_path(), ImageFormat::Png)
+        .unwrap();
 
     iced::application("SvyazON utils", App::update, App::view)
         .window_size(Size::new(250f32, 400f32))
@@ -25,10 +30,14 @@ pub enum AppEvent {
     SwitchPage(String),
 
     TReportClose,
-    TReportOpen(Option<String>),
-    TReportPurchase(Option<String>),
+    TReportOpen,
 
     ModalInput1Changed(String),
+    ModalInput2Changed(String),
+    ModalInput3Changed(String),
+    ModalInput4Changed(String),
+    ModalInput5Changed(String),
+    ModalInput6Changed(String),
 }
 
 struct App {
@@ -36,11 +45,12 @@ struct App {
     cur_page: String
 }
 
-impl Default for App {
+impl Default for App {  
     fn default() -> Self {
         let mut pages: HashMap<String, Box<dyn Page>> = HashMap::new();
         pages.insert("HomePage".to_owned(), Box::new(pages::HomePage::default()));
         pages.insert("TRModal1".to_owned(), Box::new(pages::TReportPage::new(pages::TReportPageType::Purchase)));
+        pages.insert("TRModal2".to_owned(), Box::new(pages::TReportPage::new(pages::TReportPageType::Close)));
         let mut app = Self { 
             pages,
             cur_page: Default::default()
@@ -91,17 +101,6 @@ impl App {
                 buttons = buttons.push(button); // Добавляем кнопку в Row
             }
         }
-
-        // let buttons: Row<_> = self.pages.iter().map(|page| {
-        //     if page.1.hidden() {
-        //         ()
-        //     }
-        //     button(text(page.1.label()))
-        //         .on_press(AppEvent::SwitchPage(page.0.to_owned()))
-        //         .style(button::text).width(Length::Shrink)
-        //         .into()
-        // }).collect();
-        
         container(buttons).width(Fill).align_x(Center).style(container::bordered_box)
     }
 }

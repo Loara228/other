@@ -2,7 +2,8 @@ mod constants;
 
 use std::path::PathBuf;
 
-use teloxide::{prelude::*, types::InputFile};
+use chrono::Datelike;
+use teloxide::{prelude::*, types::InputFile, utils::html::escape};
 use clap::*;
 
 #[derive(Parser)]
@@ -52,21 +53,26 @@ async fn run() {
     let cli = Cli::parse();
 
     if cli.command.is_some() {
-        let bot = Bot::new(include_str!("../target/token"));
+        let bot = Bot::new(include_str!("../token.txt"));
         match cli.command.unwrap() {
             Commands::Open { path } => {
                 bot.send_photo(ChatId(constants::DIALOG_ID), photo(path)).caption(cli.text.unwrap_or_default()).await.unwrap();
             },
             Commands::Close { path, credit_requests, credit_responses, registrations, cash, adapter } => {
                 let msg = bot.send_photo(ChatId(constants::DIALOG_ID), photo(path));
-                msg.caption(format!(
-r#"Отчет по закрытию 
-МЦ г. Радужный 7 мкр.
-1. Заявки кд количество поданных/количество выданных - {}/{}
-2. Отзывы Яндекс/ГИС - 0
-3. Регистрация клиентов в 1С - {}
-4. Адаптер шт - {}
-5. Остаток дс в кассе - {}"#, credit_requests, credit_responses, registrations, adapter, cash)).await.unwrap();
+                let date = chrono::Local::now().date_naive();
+                let message_text = format!(
+r#"_Отчет по закрытию {:02}/{:02}/{:04}_
+МЦ *`U028 Радужный 7мкр12`*
+
+1\. 💳 Заявки кд подано/выдано \- {}/{}
+2\. 💬 Отзывы [Яндекс]({})/[ГИС]({}) \- 0/0
+3\. 👥 Регистрация клиентов в 1С \- {}
+4\. 📱 Адаптер шт \- {}
+5\. 💵 Остаток дс в кассе \- _*{}₽*_
+"#, date.day(), date.month(), date.year_ce().1, credit_requests, credit_responses, constants::MAPS_YANDEX_URL, {constants::MAPS_2GIS_URL}, registrations, adapter, cash);
+
+                msg.parse_mode(teloxide::types::ParseMode::MarkdownV2).caption(escape(&message_text)).await.unwrap();
             }
             _ => todo!("not implemented")
         }

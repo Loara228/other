@@ -1,4 +1,6 @@
-use iced::{alignment::Horizontal, widget::{button, text}, Length};
+use std::io::Write;
+
+use iced::{alignment::Horizontal, widget::{button, horizontal_space, text, text_input}, Alignment::Center, Length};
 
 use crate::{models::ModalModel, AppEvent};
 
@@ -48,16 +50,16 @@ pub enum TReportPageType {
 
 pub struct TReportPage {
     t: TReportPageType,
-    input_text: String,
-    model: ModalModel
+    modal: ModalModel,
+    output: String
 }
 
 impl TReportPage {
     pub fn new(t: TReportPageType) -> Self {
         Self {
             t,
-            input_text: String::new(),
-            model: ModalModel::default()
+            output: "empty".to_owned(),
+            modal: ModalModel::default()
         }
     }
 }
@@ -65,34 +67,108 @@ impl TReportPage {
 impl Page for TReportPage {
     fn update(&mut self, event: crate::AppEvent) {
         match event {
-            AppEvent::TReportOpen(text) => {
+            AppEvent::TReportOpen => {
                 let screenshot_path = crate::get_screenshot_path();
                 let file_path = screenshot_path.parent().unwrap().join("tg-report").to_string_lossy().into_owned();
                 let mut command = std::process::Command::new(file_path);
 
-                command.arg("open").arg(screenshot_path.to_string_lossy().into_owned());
-                if text.is_some() {
-                    command.arg("-t").arg(format!("\"{}\"", text.unwrap()));
+                if !self.modal.input1.trim().is_empty() {
+                    command.arg("-t");
+                    command.arg(self.modal.input1.trim());
                 }
-                command.output().unwrap();
+                let output = command.arg("open")
+                    .arg(screenshot_path.to_string_lossy().into_owned())
+                    .output()
+                    .unwrap();
+
+                self.output = String::from_utf8(output.stdout).unwrap_or("stdout?".to_owned());
+                self.modal = ModalModel::default();
             },
             AppEvent::TReportClose => {
+                let screenshot_path = crate::get_screenshot_path();
+                let file_path = screenshot_path.parent().unwrap().join("tg-report").to_string_lossy().into_owned();
+                let mut command = std::process::Command::new(file_path);
+
+                command.arg("close");
+                command.arg("--credit-requests").arg(self.modal.input2.clone());
+                command.arg("--credit-responses").arg(self.modal.input3.clone());
+                command.arg("--registrations").arg(self.modal.input4.clone());
+                command.arg("--adapter").arg(self.modal.input5.clone());
+                command.arg("--cash").arg(self.modal.input6.clone());
                 
-            }
+                let output = command.arg(screenshot_path.to_string_lossy().into_owned())
+                    .output()
+                    .unwrap();
 
+                self.output = String::from_utf8(output.stdout).unwrap_or("stdout?".to_owned());
+                self.modal = ModalModel::default();
+            },
             AppEvent::ModalInput1Changed(text) => {
-                self.model.input1 = text;
-            }
-
+                self.modal.input1 = text;
+            },
+            AppEvent::ModalInput2Changed(text) => {
+                self.modal.input2 = text;
+            },
+            AppEvent::ModalInput3Changed(text) => {
+                self.modal.input3 = text;
+            },
+            AppEvent::ModalInput4Changed(text) => {
+                self.modal.input4 = text;
+            },
+            AppEvent::ModalInput5Changed(text) => {
+                self.modal.input5 = text;
+            },
+            AppEvent::ModalInput6Changed(text) => {
+                self.modal.input6 = text;
+            },
             _ => ()
         }
     }
     
     fn view(&self) -> iced::widget::Column<AppEvent> {
-        iced::widget::column![
-            iced::widget::text_input("Type something...", &self.model.input1)
-                .on_input(AppEvent::ModalInput1Changed)
-        ]
+        match self.t {
+            TReportPageType::Purchase => {
+                iced::widget::column![
+                    text("Дополнительный текст"),
+                    text_input("Можно оставить пустым", &self.modal.input1)
+                        .on_input(AppEvent::ModalInput1Changed),
+        
+                    iced::widget::row![
+                        button(text("Отправить").align_x(Horizontal::Center)).width(Length::Fill).on_press(AppEvent::TReportOpen)
+                    ],
+                    horizontal_space(),
+                    text(&self.output).size(12).style(iced::widget::text::secondary)
+                ].spacing(10)
+            },
+            TReportPageType::Close => {
+                iced::widget::column![
+                    iced::widget::row![
+                        text("Заявки КД"),
+                        text_input("integer", &self.modal.input2).on_input(AppEvent::ModalInput2Changed),
+                        text("/"),
+                        text_input("integer", &self.modal.input3).on_input(AppEvent::ModalInput3Changed),
+                    ].spacing(6).align_y(Center),
+                    iced::widget::row![
+                        text("Регистраций 1C"),
+                        text_input("integer", &self.modal.input4).on_input(AppEvent::ModalInput4Changed),
+                    ].spacing(6).align_y(Center),
+                    iced::widget::row![
+                        text("Адаптер"),
+                        text_input("integer", &self.modal.input5).on_input(AppEvent::ModalInput5Changed),
+                    ].spacing(6).align_y(Center),
+                    iced::widget::row![
+                        text("ДС"),
+                        text_input("integer", &self.modal.input6).on_input(AppEvent::ModalInput6Changed),
+                    ].spacing(6).align_y(Center),
+        
+                    iced::widget::row![
+                        button(text("Отправить").align_x(Horizontal::Center)).width(Length::Fill).on_press(AppEvent::TReportClose)
+                    ],
+                    iced::widget::horizontal_space(),
+                    iced::widget::text(&self.output).size(12).style(iced::widget::text::secondary)
+                ].spacing(10)
+            }
+        }
     }
 
     fn label(&self) -> &str {
