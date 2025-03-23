@@ -89,6 +89,8 @@ impl Page for TReportPage {
                 command.arg("close");
                 command.arg("--credit-requests").arg(self.modal.input2.clone());
                 command.arg("--credit-responses").arg(self.modal.input3.clone());
+                command.arg("--yasplit-requests").arg(self.modal.input7.clone());
+                command.arg("--yasplit-responses").arg(self.modal.input8.clone());
                 command.arg("--registrations").arg(self.modal.input4.clone());
                 command.arg("--adapter").arg(self.modal.input5.clone());
                 command.arg("--cash").arg(self.modal.input6.clone());
@@ -118,6 +120,12 @@ impl Page for TReportPage {
             AppEvent::ModalInput6Changed(text) => {
                 self.modal.input6 = text;
             },
+            AppEvent::ModalInput7Changed(text) => {
+                self.modal.input7 = text;
+            },
+            AppEvent::ModalInput8Changed(text) => {
+                self.modal.input8 = text;
+            },
             _ => ()
         }
     }
@@ -144,6 +152,12 @@ impl Page for TReportPage {
                         text_input("integer", &self.modal.input2).on_input(AppEvent::ModalInput2Changed),
                         text("/"),
                         text_input("integer", &self.modal.input3).on_input(AppEvent::ModalInput3Changed),
+                    ].spacing(6).align_y(Center),
+                    iced::widget::row![
+                        text("Яндекс сплит"),
+                        text_input("integer", &self.modal.input7).on_input(AppEvent::ModalInput7Changed),
+                        text("/"),
+                        text_input("integer", &self.modal.input8).on_input(AppEvent::ModalInput8Changed),
                     ].spacing(6).align_y(Center),
                     iced::widget::row![
                         text("Регистраций 1C"),

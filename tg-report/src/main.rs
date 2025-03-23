@@ -34,6 +34,12 @@ pub enum Commands {
         credit_responses: u32,
 
         #[arg(long, default_value = "0")]
+        yasplit_requests: u32,
+
+        #[arg(long, default_value = "0")]
+        yasplit_responses: u32,
+
+        #[arg(long, default_value = "0")]
         registrations: u32,
 
         #[arg(long, default_value = "0")]
@@ -58,19 +64,21 @@ async fn run() {
             Commands::Open { path } => {
                 bot.send_photo(ChatId(constants::DIALOG_ID), photo(path)).caption(cli.text.unwrap_or_default()).await.unwrap();
             },
-            Commands::Close { path, credit_requests, credit_responses, registrations, cash, adapter } => {
+            Commands::Close { path, credit_requests, credit_responses, yasplit_requests, yasplit_responses, registrations, cash, adapter } => {
                 let msg = bot.send_photo(ChatId(constants::DIALOG_ID), photo(path));
                 let date = chrono::Local::now().date_naive();
                 let message_text = format!(
 r#"_Отчет по закрытию {:02}/{:02}/{:04}_
 МЦ *`U028 Радужный 7мкр12`*
 
-1\. 💳 Заявки кд подано/выдано \- {}/{}
-2\. 💬 Отзывы [Яндекс]({})/[ГИС]({}) \- 0/0
-3\. 👥 Регистрация клиентов в 1С \- {}
-4\. 📱 Адаптер шт \- {}
-5\. 💵 Остаток дс в кассе \- _*{}₽*_
-"#, date.day(), date.month(), date.year_ce().1, credit_requests, credit_responses, constants::MAPS_YANDEX_URL, {constants::MAPS_2GIS_URL}, registrations, adapter, cash);
+1\. Заявки кд подано/выдано \- {}/{}
+1\. Я сплит подано/выдано \- {}/{}
+2\. Отзывы [Яндекс]({})/[ГИС]({}) \- 0/0
+3\. Регистрация клиентов в 1С \- {}
+4\. Адаптер шт \- {}
+5\. Вклады \- 0
+6\. Остаток дс в кассе \- _*{}₽*_
+"#, date.day(), date.month(), date.year_ce().1, credit_requests, credit_responses, yasplit_requests, yasplit_responses, constants::MAPS_YANDEX_URL, {constants::MAPS_2GIS_URL}, registrations, adapter, cash);
 
                 msg.parse_mode(teloxide::types::ParseMode::MarkdownV2).caption(escape(&message_text)).await.unwrap();
             }

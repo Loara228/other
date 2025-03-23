@@ -39,6 +39,8 @@ pub enum AppEvent {
     ModalInput4Changed(String),
     ModalInput5Changed(String),
     ModalInput6Changed(String),
+    ModalInput7Changed(String),
+    ModalInput8Changed(String),
 }
 
 struct App {

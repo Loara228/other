@@ -18,6 +18,12 @@ pub struct ModalModel {
 
     /// ДС
     pub input6: String,
+
+    /// Yandex Split запрос
+    pub input7: String,
+
+    /// Yandex Split успешно
+    pub input8: String,
 }
 
 impl Default for ModalModel {
@@ -29,6 +35,8 @@ impl Default for ModalModel {
             input4: String::from("0"),
             input5: String::from("0"),
             input6: String::from("0"),
+            input7: String::from("0"),
+            input8: String::from("0"),
         }
     }
 }
